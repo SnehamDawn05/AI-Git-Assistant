@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AnalysisType {
+  REVIEW
+  SUMMARY
+  README
+}
+
+enum AnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String?
+  image     String?
+
+  analyses  Analysis[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Analysis {
+  id        String   @id @default(cuid())
+
+  repoUrl   String
+  branch    String
+  commitSha String?
+
+  type      AnalysisType
+  status    AnalysisStatus
+
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+
+  result    Result?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Result {
+  id         String   @id @default(cuid())
+
+  analysisId String   @unique
+  analysis   Analysis @relation(fields: [analysisId], references: [id])
+
+  summary    Json?
+  review     Json?
+  readme     String?
+
+  createdAt  DateTime @default(now())
+}

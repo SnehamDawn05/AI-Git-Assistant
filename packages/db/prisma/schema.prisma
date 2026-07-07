@@ -21,28 +21,92 @@ enum AnalysisStatus {
 }
 
 model User {
-  id String @id @default(cuid())
-
-  name          String?
-  email         String  @unique
-  emailVerified Boolean @default(false)
-  password      String?
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
   image         String?
 
-  analyses Analysis[]
+  sessions       Session[]
+  accounts       Account[]
 
-  sessions Session[]
-  accounts Account[]
+  repositories   Repository[]
+  analyses       Analysis[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@map("user")
 }
 
-model Session {
-  id String @id @default(cuid())
+model Repository {
+  id          String   @id @default(cuid())
 
+  githubUrl   String
+  owner       String
+  name        String
+
+  defaultBranch String?
+
+  userId      String
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  analyses    Analysis[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, githubUrl])
+}
+
+model Analysis {
+  id            String @id @default(cuid())
+
+  repositoryId  String
+  repository    Repository
+    @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  userId        String
+  user          User
+    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type          AnalysisType
+  status        AnalysisStatus @default(PENDING)
+
+  branch        String?
+  commitSha     String?
+
+  prNumber      Int?
+
+  result        Result?
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([repositoryId])
+  @@index([status])
+}
+
+model Result {
+  id          String @id @default(cuid())
+
+  analysisId  String @unique
+  analysis    Analysis
+    @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  summary     Json?
+
+  review      Json?
+
+  readme      String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id
   expiresAt DateTime
   token     String   @unique
 
@@ -52,83 +116,55 @@ model Session {
   ipAddress String?
   userAgent String?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User
+    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+
   @@map("session")
 }
 
 model Account {
-  id String @id @default(cuid())
+  id                    String @id
 
-  accountId  String
-  providerId String
+  accountId             String
+  providerId            String
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String
+  user                  User
+    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  accessToken  String?
-  refreshToken String?
-  idToken      String?
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
 
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
 
-  scope String?
+  scope                 String?
+  password              String?
 
-  password String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   @@index([userId])
+
   @@map("account")
 }
 
 model Verification {
-  id String @id @default(cuid())
+  id         String @id
 
   identifier String
   value      String
 
-  expiresAt DateTime
+  expiresAt  DateTime
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+
   @@map("verification")
-}
-
-model Analysis {
-  id String @id @default(cuid())
-
-  repoUrl   String
-  branch    String
-  commitSha String?
-
-  type   AnalysisType
-  status AnalysisStatus
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  result Result?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Result {
-  id String @id @default(cuid())
-
-  analysisId String   @unique
-  analysis   Analysis @relation(fields: [analysisId], references: [id])
-
-  summary Json?
-  review  Json?
-  readme  String?
-
-  createdAt DateTime @default(now())
 }

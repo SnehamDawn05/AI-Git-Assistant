@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { authClient } from "@/lib/auth-client";
 import { useSession } from "@/hooks/use-session";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+
   const { user } = useSession();
 
   async function handleLogout() {
@@ -19,26 +21,58 @@ export function Navbar() {
     router.refresh();
   }
 
+  const navItems = [
+    {
+      label: "Dashboard",
+      href: "/dashboard",
+    },
+    {
+      label: "Analysis",
+      href: "/analysis",
+    },
+    {
+      label: "Settings",
+      href: "/settings",
+    },
+  ];
+
   return (
-    <header className="border-b">
+    <header className="border-b bg-background">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        <Link href="/dashboard" className="text-xl font-bold">
+        {/* Logo */}
+        <Link href="/dashboard" className="text-xl font-bold tracking-tight">
           AI Git Assistant
         </Link>
 
+        {/* Navigation */}
         <nav className="flex items-center gap-6">
-          <Link href="/dashboard">Dashboard</Link>
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`text-sm font-medium transition-colors ${
+                pathname === item.href
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
 
-          <Link href="/repositories">Repositories</Link>
+        {/* User */}
+        <div className="flex items-center gap-4">
+          <div className="hidden text-right md:block">
+            <p className="text-sm font-medium">{user?.name}</p>
 
-          <Link href="/analysis">Analysis</Link>
-
-          <span className="text-muted-foreground">{user?.name}</span>
+            <p className="text-xs text-muted-foreground">{user?.email}</p>
+          </div>
 
           <Button variant="outline" onClick={handleLogout}>
             Logout
           </Button>
-        </nav>
+        </div>
       </div>
     </header>
   );

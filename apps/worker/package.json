@@ -15,6 +15,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.34.4",
   "dependencies": {
+    "@repo/github": "workspace:*",
     "@repo/queue": "workspace:*",
     "bullmq": "^5.79.3",
     "dotenv": "^17.2.1",

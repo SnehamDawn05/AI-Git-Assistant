@@ -1,11 +1,11 @@
 import { Queue } from "bullmq";
 
-import { redis } from "./redis";
-
 export const ANALYSIS_QUEUE_NAME = "analysis";
 
 export const analysisQueue = new Queue(ANALYSIS_QUEUE_NAME, {
-  connection: redis,
+  connection: {
+    url: process.env.REDIS_URL!,
+  },
 
   defaultJobOptions: {
     attempts: 3,
@@ -16,7 +16,6 @@ export const analysisQueue = new Queue(ANALYSIS_QUEUE_NAME, {
     },
 
     removeOnComplete: 100,
-
     removeOnFail: 100,
   },
 });

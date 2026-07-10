@@ -209,6 +209,7 @@ credentials/
 **/build/
 **/.turbo/
 **/coverage/
+tmp/
 
 # ============================================================
 # KEEP YOUR LOCK FILE

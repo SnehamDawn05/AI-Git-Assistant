@@ -122,6 +122,9 @@ importers:
 
   apps/worker:
     dependencies:
+      "@repo/ai":
+        specifier: workspace:*
+        version: link:../../packages/ai
       "@repo/github":
         specifier: workspace:*
         version: link:../../packages/github
@@ -153,6 +156,19 @@ importers:
       tsx:
         specifier: ^4.22.4
         version: 4.22.4
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/ai:
+    dependencies:
+      "@repo/github":
+        specifier: workspace:*
+        version: link:../github
+    devDependencies:
+      "@types/node":
+        specifier: ^20.19.43
+        version: 20.19.43
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

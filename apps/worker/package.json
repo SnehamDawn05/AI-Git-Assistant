@@ -17,6 +17,7 @@
   "dependencies": {
     "@repo/github": "workspace:*",
     "@repo/queue": "workspace:*",
+    "@repo/ai": "workspace:*",
     "bullmq": "^5.79.3",
     "dotenv": "^17.2.1",
     "express": "^5.2.1",

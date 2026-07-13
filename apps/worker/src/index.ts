@@ -1,5 +1,6 @@
 import "dotenv/config";
 
+import { chunkRepository } from "@repo/ai";
 import { Worker } from "bullmq";
 
 import {
@@ -59,23 +60,44 @@ const worker = new Worker<AnalysisJobData>(
         `📦 package.json: ${context.packageJson ? "✅ Found" : "❌ Not Found"}`,
       );
 
+      // --------------------------------------------------
+      // Chunk Repository
+      // --------------------------------------------------
+
+      console.log();
+      console.log("🧠 Building AI chunks...");
+
+      const chunkResult = chunkRepository(context);
+
+      console.log();
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+      console.log("🧠 Chunk Summary");
+      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log();
 
-      console.log("📋 First 10 Files:");
+      console.log(`📦 Total Chunks: ${chunkResult.metadata.totalChunks}`);
 
-      context.files.slice(0, 10).forEach((file) => {
-        console.log(
-          ` • ${file.path} (${file.language}) - ${(file.size / 1024).toFixed(
-            1,
-          )} KB`,
-        );
-      });
+      console.log(
+        `🔢 Estimated Tokens: ${chunkResult.metadata.totalEstimatedTokens}`,
+      );
 
-      if (context.files.length > 10) {
-        console.log(`...and ${context.files.length - 10} more`);
+      console.log(
+        `📝 Total Characters: ${chunkResult.metadata.totalCharacters}`,
+      );
+
+      console.log();
+
+      for (const chunk of chunkResult.chunks) {
+        console.log(`📦 Chunk ${chunk.id}`);
+
+        console.log(`   Files      : ${chunk.files.length}`);
+
+        console.log(`   Tokens     : ${chunk.estimatedTokens}`);
+
+        console.log(`   Characters : ${chunk.estimatedCharacters}`);
+
+        console.log();
       }
-
-      console.log();
 
       console.log("🗑️ Cleaning temporary repository...");
 

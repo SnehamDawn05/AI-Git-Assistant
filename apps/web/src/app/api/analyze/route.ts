@@ -10,19 +10,17 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.repositoryUrl) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Repository URL is required.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
+    const repositoryUrl = body.repositoryUrl?.trim() ?? "";
 
-    if (!Object.values(JobType).includes(body.type)) {
+    const pullRequestUrl = body.pullRequestUrl?.trim() ?? "";
+
+    const type = body.type as JobType;
+
+    // ---------------------------------------
+    // Validate analysis type
+    // ---------------------------------------
+
+    if (!Object.values(JobType).includes(type)) {
       return NextResponse.json(
         {
           success: false,
@@ -34,7 +32,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (body.type === JobType.REVIEW && !body.pullRequestUrl) {
+    // ---------------------------------------
+    // Repository URL required for
+    // SUMMARY and README only
+    // ---------------------------------------
+
+    if (type !== JobType.REVIEW && !repositoryUrl) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Repository URL is required.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    // ---------------------------------------
+    // Pull Request URL required for REVIEW
+    // ---------------------------------------
+
+    if (type === JobType.REVIEW && !pullRequestUrl) {
       return NextResponse.json(
         {
           success: false,
@@ -48,14 +67,19 @@ export async function POST(req: NextRequest) {
 
     const data: AnalysisJobData = {
       analysisId: crypto.randomUUID(),
+
       repositoryId: crypto.randomUUID(),
 
-      repositoryUrl: body.repositoryUrl,
-      pullRequestUrl: body.pullRequestUrl || undefined,
-      type: body.type,
+      // Worker derives the repository URL
+      // from the PR URL for REVIEW jobs.
+      repositoryUrl: repositoryUrl || "",
+
+      pullRequestUrl: pullRequestUrl || undefined,
+
+      type,
     };
 
-    const job = await analysisQueue.add(data.type, data);
+    const job = await analysisQueue.add(type, data);
 
     return NextResponse.json({
       success: true,

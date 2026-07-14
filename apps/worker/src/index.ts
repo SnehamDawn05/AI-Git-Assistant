@@ -6,7 +6,9 @@ import { Worker } from "bullmq";
 import {
   cleanupRepository,
   cloneRepository,
+  loadPullRequestContext,
   loadRepositoryContext,
+  parsePullRequestUrl,
 } from "@repo/github";
 
 import { ANALYSIS_QUEUE_NAME, type AnalysisJobData } from "@repo/queue/server";
@@ -22,10 +24,11 @@ const worker = new Worker<AnalysisJobData>(
 
     console.log(`🆔 Job ID: ${job.id}`);
     console.log(`📌 Analysis Type: ${job.data.type}`);
-    console.log(`📂 Repository: ${job.data.repositoryUrl}`);
 
-    if (job.data.pullRequestUrl) {
+    if (job.data.type === "REVIEW") {
       console.log(`🔀 Pull Request: ${job.data.pullRequestUrl}`);
+    } else {
+      console.log(`📂 Repository: ${job.data.repositoryUrl}`);
     }
 
     console.log();
@@ -33,13 +36,36 @@ const worker = new Worker<AnalysisJobData>(
     let repositoryPath: string | undefined;
 
     try {
+      // --------------------------------------------------
+      // Determine Repository URL
+      // --------------------------------------------------
+
+      let repositoryUrl = job.data.repositoryUrl;
+
+      if (job.data.type === "REVIEW" && job.data.pullRequestUrl) {
+        const parsed = parsePullRequestUrl(job.data.pullRequestUrl);
+
+        repositoryUrl = `https://github.com/${parsed.owner}/${parsed.repository}`;
+
+        console.log(`📂 Derived Repository: ${repositoryUrl}`);
+      }
+
+      // --------------------------------------------------
+      // Clone Repository
+      // --------------------------------------------------
+
+      console.log();
       console.log("📥 Cloning repository...");
 
-      repositoryPath = await cloneRepository(job.data.repositoryUrl);
+      repositoryPath = await cloneRepository(repositoryUrl);
+
+      // --------------------------------------------------
+      // Repository Context
+      // --------------------------------------------------
 
       console.log("📦 Building repository context...");
 
-      const context = await loadRepositoryContext(repositoryPath);
+      const repositoryContext = await loadRepositoryContext(repositoryPath);
 
       console.log();
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -47,18 +73,59 @@ const worker = new Worker<AnalysisJobData>(
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log();
 
-      console.log(`📁 Repository: ${context.repositoryName}`);
-      console.log(`📄 Files Loaded: ${context.totalFiles}`);
-      console.log(`📂 Folders: ${context.folders.length}`);
-      console.log(
-        `💾 Context Size: ${(context.totalSize / 1024).toFixed(2)} KB`,
-      );
+      console.log(`📁 Repository: ${repositoryContext.repositoryName}`);
 
-      console.log(`📘 README: ${context.readme ? "✅ Found" : "❌ Not Found"}`);
+      console.log(`📄 Files Loaded: ${repositoryContext.totalFiles}`);
+
+      console.log(`📂 Folders: ${repositoryContext.folders.length}`);
 
       console.log(
-        `📦 package.json: ${context.packageJson ? "✅ Found" : "❌ Not Found"}`,
+        `💾 Context Size: ${(repositoryContext.totalSize / 1024).toFixed(
+          2,
+        )} KB`,
       );
+
+      console.log(
+        `📘 README: ${repositoryContext.readme ? "✅ Found" : "❌ Not Found"}`,
+      );
+
+      console.log(
+        `📦 package.json: ${
+          repositoryContext.packageJson ? "✅ Found" : "❌ Not Found"
+        }`,
+      );
+
+      // --------------------------------------------------
+      // Pull Request Context
+      // --------------------------------------------------
+
+      if (job.data.type === "REVIEW" && job.data.pullRequestUrl) {
+        console.log();
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log("🔀 Pull Request Context");
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log();
+
+        const prContext = await loadPullRequestContext(job.data.pullRequestUrl);
+
+        console.log(`🔢 PR #${prContext.metadata.number}`);
+
+        console.log(`📝 Title: ${prContext.metadata.title}`);
+
+        console.log(`👤 Author: ${prContext.metadata.author}`);
+
+        console.log(
+          `🌿 ${prContext.metadata.headBranch} → ${prContext.metadata.baseBranch}`,
+        );
+
+        console.log(`📄 Changed Files: ${prContext.files.length}`);
+
+        console.log(`➕ Additions: ${prContext.metadata.additions}`);
+
+        console.log(`➖ Deletions: ${prContext.metadata.deletions}`);
+
+        console.log(`🧩 Commits: ${prContext.metadata.commits}`);
+      }
 
       // --------------------------------------------------
       // Chunk Repository
@@ -67,7 +134,7 @@ const worker = new Worker<AnalysisJobData>(
       console.log();
       console.log("🧠 Building AI chunks...");
 
-      const chunkResult = chunkRepository(context);
+      const chunkResult = chunkRepository(repositoryContext);
 
       console.log();
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -89,15 +156,15 @@ const worker = new Worker<AnalysisJobData>(
 
       for (const chunk of chunkResult.chunks) {
         console.log(`📦 Chunk ${chunk.id}`);
-
         console.log(`   Files      : ${chunk.files.length}`);
-
         console.log(`   Tokens     : ${chunk.estimatedTokens}`);
-
         console.log(`   Characters : ${chunk.estimatedCharacters}`);
-
         console.log();
       }
+
+      // --------------------------------------------------
+      // Cleanup
+      // --------------------------------------------------
 
       console.log("🗑️ Cleaning temporary repository...");
 

@@ -24,7 +24,7 @@ export function AnalysisForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!repositoryUrl.trim()) {
+    if (type !== JobType.REVIEW && !repositoryUrl.trim()) {
       toast.error("Please enter a repository URL.");
       return;
     }
@@ -39,12 +39,18 @@ export function AnalysisForm() {
 
       const response = await fetch("/api/analyze", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
-          repositoryUrl,
-          pullRequestUrl: type === JobType.REVIEW ? pullRequestUrl : undefined,
+          repositoryUrl:
+            type === JobType.REVIEW ? undefined : repositoryUrl.trim(),
+
+          pullRequestUrl:
+            type === JobType.REVIEW ? pullRequestUrl.trim() : undefined,
+
           type,
         }),
       });
@@ -75,11 +81,13 @@ export function AnalysisForm() {
         onValueChange={(value) => setType(value as JobType)}
       />
 
-      <Input
-        placeholder="https://github.com/owner/repository"
-        value={repositoryUrl}
-        onChange={(e) => setRepositoryUrl(e.target.value)}
-      />
+      {type !== JobType.REVIEW && (
+        <Input
+          placeholder="https://github.com/owner/repository"
+          value={repositoryUrl}
+          onChange={(e) => setRepositoryUrl(e.target.value)}
+        />
+      )}
 
       {type === JobType.REVIEW && (
         <Input

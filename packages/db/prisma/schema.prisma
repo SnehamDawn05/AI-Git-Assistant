@@ -21,88 +21,104 @@ enum AnalysisStatus {
 }
 
 model User {
-  id            String    @id
+  id            String  @id
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String  @unique
+  emailVerified Boolean @default(false)
   image         String?
 
-  sessions       Session[]
-  accounts       Account[]
+  sessions Session[]
+  accounts Account[]
 
-  repositories   Repository[]
-  analyses       Analysis[]
+  repositories Repository[]
+  analyses     Analysis[]
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user")
 }
 
 model Repository {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  githubUrl   String
-  owner       String
-  name        String
+  githubUrl String
+  owner     String
+  name      String
 
   defaultBranch String?
 
-  userId      String
-  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  analyses    Analysis[]
+  analyses Analysis[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, githubUrl])
 }
 
 model Analysis {
-  id            String @id @default(cuid())
+  id String @id @default(cuid())
 
-  repositoryId  String
-  repository    Repository
-    @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  repositoryId String
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
 
-  userId        String
-  user          User
-    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type          AnalysisType
-  status        AnalysisStatus @default(PENDING)
+  type AnalysisType
 
-  branch        String?
-  commitSha     String?
+  status AnalysisStatus @default(PENDING)
 
-  prNumber      Int?
+  branch String?
 
-  result        Result?
+  commitSha String?
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  prNumber Int?
+
+  result Result?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([repositoryId])
   @@index([status])
+  @@index([type])
 }
 
 model Result {
-  id          String @id @default(cuid())
+  id String @id @default(cuid())
 
-  analysisId  String @unique
-  analysis    Analysis
-    @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  analysisId String   @unique
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
 
-  summary     Json?
+  /// Stores AI output
+  ///
+  /// SUMMARY -> SummaryResult
+  /// REVIEW  -> ReviewResult
+  /// README  -> ReadmeResult
+  content Json
 
-  review      Json?
+  /// Gemini model used
+  model String?
 
-  readme      String?
+  /// Prompt tokens
+  promptTokens Int?
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  /// Completion tokens
+  completionTokens Int?
+
+  /// Total tokens
+  totalTokens Int?
+
+  /// Time taken by Gemini
+  processingTimeMs Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Session {
@@ -116,55 +132,50 @@ model Session {
   ipAddress String?
   userAgent String?
 
-  userId    String
-  user      User
-    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-
   @@map("session")
 }
 
 model Account {
-  id                    String @id
+  id String @id
 
-  accountId             String
-  providerId            String
+  accountId  String
+  providerId String
 
-  userId                String
-  user                  User
-    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
+  accessToken  String?
+  refreshToken String?
+  idToken      String?
 
   accessTokenExpiresAt  DateTime?
   refreshTokenExpiresAt DateTime?
 
-  scope                 String?
-  password              String?
+  scope    String?
+  password String?
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
-
   @@map("account")
 }
 
 model Verification {
-  id         String @id
+  id String @id
 
   identifier String
   value      String
 
-  expiresAt  DateTime
+  expiresAt DateTime
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([identifier])
-
   @@map("verification")
 }

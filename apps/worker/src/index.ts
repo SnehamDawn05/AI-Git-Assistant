@@ -1,6 +1,7 @@
 import "dotenv/config";
 
-import { chunkRepository } from "@repo/ai";
+import { generateReadme, generateSummary, reviewPullRequest } from "@repo/ai";
+
 import { Worker } from "bullmq";
 
 import {
@@ -9,9 +10,14 @@ import {
   loadPullRequestContext,
   loadRepositoryContext,
   parsePullRequestUrl,
+  type PRContext,
 } from "@repo/github";
 
-import { ANALYSIS_QUEUE_NAME, type AnalysisJobData } from "@repo/queue/server";
+import {
+  ANALYSIS_QUEUE_NAME,
+  JobType,
+  type AnalysisJobData,
+} from "@repo/queue/server";
 
 const worker = new Worker<AnalysisJobData>(
   ANALYSIS_QUEUE_NAME,
@@ -25,7 +31,7 @@ const worker = new Worker<AnalysisJobData>(
     console.log(`🆔 Job ID: ${job.id}`);
     console.log(`📌 Analysis Type: ${job.data.type}`);
 
-    if (job.data.type === "REVIEW") {
+    if (job.data.type === JobType.REVIEW) {
       console.log(`🔀 Pull Request: ${job.data.pullRequestUrl}`);
     } else {
       console.log(`📂 Repository: ${job.data.repositoryUrl}`);
@@ -34,6 +40,7 @@ const worker = new Worker<AnalysisJobData>(
     console.log();
 
     let repositoryPath: string | undefined;
+    let prContext: PRContext | undefined;
 
     try {
       // --------------------------------------------------
@@ -42,7 +49,7 @@ const worker = new Worker<AnalysisJobData>(
 
       let repositoryUrl = job.data.repositoryUrl;
 
-      if (job.data.type === "REVIEW" && job.data.pullRequestUrl) {
+      if (job.data.type === JobType.REVIEW && job.data.pullRequestUrl) {
         const parsed = parsePullRequestUrl(job.data.pullRequestUrl);
 
         repositoryUrl = `https://github.com/${parsed.owner}/${parsed.repository}`;
@@ -63,6 +70,7 @@ const worker = new Worker<AnalysisJobData>(
       // Repository Context
       // --------------------------------------------------
 
+      console.log();
       console.log("📦 Building repository context...");
 
       const repositoryContext = await loadRepositoryContext(repositoryPath);
@@ -99,14 +107,14 @@ const worker = new Worker<AnalysisJobData>(
       // Pull Request Context
       // --------------------------------------------------
 
-      if (job.data.type === "REVIEW" && job.data.pullRequestUrl) {
+      if (job.data.type === JobType.REVIEW && job.data.pullRequestUrl) {
         console.log();
         console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         console.log("🔀 Pull Request Context");
         console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         console.log();
 
-        const prContext = await loadPullRequestContext(job.data.pullRequestUrl);
+        prContext = await loadPullRequestContext(job.data.pullRequestUrl);
 
         console.log(`🔢 PR #${prContext.metadata.number}`);
 
@@ -128,44 +136,75 @@ const worker = new Worker<AnalysisJobData>(
       }
 
       // --------------------------------------------------
-      // Chunk Repository
+      // AI Analysis
       // --------------------------------------------------
 
       console.log();
-      console.log("🧠 Building AI chunks...");
-
-      const chunkResult = chunkRepository(repositoryContext);
-
-      console.log();
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.log("🧠 Chunk Summary");
+      console.log("🤖 AI Analysis");
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log();
 
-      console.log(`📦 Total Chunks: ${chunkResult.metadata.totalChunks}`);
+      switch (job.data.type) {
+        case JobType.SUMMARY: {
+          console.log("📝 Generating repository summary...");
 
-      console.log(
-        `🔢 Estimated Tokens: ${chunkResult.metadata.totalEstimatedTokens}`,
-      );
+          const summary = await generateSummary(repositoryContext);
 
-      console.log(
-        `📝 Total Characters: ${chunkResult.metadata.totalCharacters}`,
-      );
+          console.log();
+          console.log("✅ Summary Generated");
+          console.log();
 
-      console.log();
+          console.dir(summary, {
+            depth: null,
+          });
 
-      for (const chunk of chunkResult.chunks) {
-        console.log(`📦 Chunk ${chunk.id}`);
-        console.log(`   Files      : ${chunk.files.length}`);
-        console.log(`   Tokens     : ${chunk.estimatedTokens}`);
-        console.log(`   Characters : ${chunk.estimatedCharacters}`);
-        console.log();
+          break;
+        }
+
+        case JobType.README: {
+          console.log("📘 Generating README...");
+
+          const readme = await generateReadme(repositoryContext);
+
+          console.log();
+          console.log("✅ README Generated");
+          console.log();
+
+          console.log(readme.markdown);
+
+          break;
+        }
+
+        case JobType.REVIEW: {
+          if (!prContext) {
+            throw new Error("Pull Request context not found.");
+          }
+
+          console.log("🔍 Reviewing Pull Request...");
+
+          const review = await reviewPullRequest(repositoryContext, prContext);
+
+          console.log();
+          console.log("✅ Review Generated");
+          console.log();
+
+          console.dir(review, {
+            depth: null,
+          });
+
+          break;
+        }
+
+        default:
+          throw new Error(`Unsupported analysis type: ${job.data.type}`);
       }
 
       // --------------------------------------------------
       // Cleanup
       // --------------------------------------------------
 
+      console.log();
       console.log("🗑️ Cleaning temporary repository...");
 
       await cleanupRepository(repositoryPath);

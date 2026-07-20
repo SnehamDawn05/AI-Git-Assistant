@@ -2,6 +2,12 @@ import "dotenv/config";
 
 import { generateReadme, generateSummary, reviewPullRequest } from "@repo/ai";
 
+import {
+  AnalysisStatus,
+  saveAnalysisResult,
+  updateAnalysisStatus,
+} from "@repo/db";
+
 import { Worker } from "bullmq";
 
 import {
@@ -43,6 +49,15 @@ const worker = new Worker<AnalysisJobData>(
     let prContext: PRContext | undefined;
 
     try {
+      // --------------------------------------------------
+      // Update Status
+      // --------------------------------------------------
+
+      await updateAnalysisStatus(
+        job.data.analysisId,
+        AnalysisStatus.PROCESSING,
+      );
+
       // --------------------------------------------------
       // Determine Repository URL
       // --------------------------------------------------
@@ -151,13 +166,11 @@ const worker = new Worker<AnalysisJobData>(
 
           const summary = await generateSummary(repositoryContext);
 
+          await saveAnalysisResult(job.data.analysisId, summary);
+
           console.log();
           console.log("✅ Summary Generated");
-          console.log();
-
-          console.dir(summary, {
-            depth: null,
-          });
+          console.log("💾 Summary saved to database");
 
           break;
         }
@@ -167,11 +180,13 @@ const worker = new Worker<AnalysisJobData>(
 
           const readme = await generateReadme(repositoryContext);
 
+          await saveAnalysisResult(job.data.analysisId, {
+            markdown: readme.markdown,
+          });
+
           console.log();
           console.log("✅ README Generated");
-          console.log();
-
-          console.log(readme.markdown);
+          console.log("💾 README saved to database");
 
           break;
         }
@@ -185,13 +200,11 @@ const worker = new Worker<AnalysisJobData>(
 
           const review = await reviewPullRequest(repositoryContext, prContext);
 
+          await saveAnalysisResult(job.data.analysisId, review);
+
           console.log();
           console.log("✅ Review Generated");
-          console.log();
-
-          console.dir(review, {
-            depth: null,
-          });
+          console.log("💾 Review saved to database");
 
           break;
         }
@@ -199,6 +212,14 @@ const worker = new Worker<AnalysisJobData>(
         default:
           throw new Error(`Unsupported analysis type: ${job.data.type}`);
       }
+      // --------------------------------------------------
+      // Mark Analysis Completed
+      // --------------------------------------------------
+
+      await updateAnalysisStatus(job.data.analysisId, AnalysisStatus.COMPLETED);
+
+      console.log();
+      console.log("✅ Analysis marked as COMPLETED");
 
       // --------------------------------------------------
       // Cleanup
@@ -217,6 +238,15 @@ const worker = new Worker<AnalysisJobData>(
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log();
     } catch (error) {
+      // --------------------------------------------------
+      // Mark Analysis Failed
+      // --------------------------------------------------
+
+      await updateAnalysisStatus(
+        job.data.analysisId,
+        AnalysisStatus.FAILED,
+      ).catch(() => {});
+
       console.error();
       console.error("❌ Analysis failed");
       console.error(error);

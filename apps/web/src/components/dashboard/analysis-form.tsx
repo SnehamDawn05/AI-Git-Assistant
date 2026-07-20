@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { JobType } from "@repo/queue/client";
@@ -13,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { AnalysisTypeSelector } from "./analysis-type-selector";
 
 export function AnalysisForm() {
+  const router = useRouter();
+
   const [type, setType] = useState<JobType>(JobType.REVIEW);
 
   const [repositoryUrl, setRepositoryUrl] = useState("");
@@ -58,13 +61,16 @@ export function AnalysisForm() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message);
+        throw new Error(data.message || "Failed to start analysis.");
       }
 
       toast.success("Analysis queued successfully!");
 
       setRepositoryUrl("");
       setPullRequestUrl("");
+
+      // Redirect directly to the analysis page
+      router.push(`/analysis/${data.analysisId}`);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong.",

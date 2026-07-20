@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./analysis": "./src/analysis.ts"
   },
   "types": "./src/index.ts",
   "packageManager": "pnpm@10.34.4",
@@ -13,13 +15,13 @@
     "migrate": "prisma migrate dev",
     "studio": "prisma studio"
   },
+  "dependencies": {
+    "@prisma/client": "^6.19.3"
+  },
   "devDependencies": {
     "@types/node": "^26.1.0",
     "dotenv": "^17.4.2",
     "prisma": "^6.19.3",
     "typescript": "^5.9.2"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.19.3"
   }
 }

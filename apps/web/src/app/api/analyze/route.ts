@@ -151,6 +151,10 @@ export async function POST(req: NextRequest) {
 
       repositoryId: repositoryRecord.id,
 
+      owner,
+
+      repository,
+
       repositoryUrl,
 
       pullRequestUrl: pullRequestUrl || undefined,

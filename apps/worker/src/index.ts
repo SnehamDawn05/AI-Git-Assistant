@@ -23,6 +23,8 @@ import {
   ANALYSIS_QUEUE_NAME,
   JobType,
   type AnalysisJobData,
+  getCache,
+  setCache,
 } from "@repo/queue/server";
 
 const worker = new Worker<AnalysisJobData>(
@@ -57,6 +59,42 @@ const worker = new Worker<AnalysisJobData>(
         job.data.analysisId,
         AnalysisStatus.PROCESSING,
       );
+
+      // --------------------------------------------------
+      // Check Redis Cache
+      // --------------------------------------------------
+
+      console.log();
+      console.log("⚡ Checking Redis cache...");
+
+      const cachedResult = await getCache(
+        job.data.owner,
+        job.data.repository,
+        job.data.type,
+      );
+
+      if (cachedResult) {
+        console.log("✅ Cache hit");
+
+        await saveAnalysisResult(job.data.analysisId, cachedResult);
+
+        await updateAnalysisStatus(
+          job.data.analysisId,
+          AnalysisStatus.COMPLETED,
+        );
+
+        console.log("💾 Cached result saved to database");
+
+        console.log();
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log("✅ Analysis Complete (CACHE)");
+        console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        console.log();
+
+        return;
+      }
+
+      console.log("❌ Cache miss");
 
       // --------------------------------------------------
       // Determine Repository URL
@@ -132,9 +170,7 @@ const worker = new Worker<AnalysisJobData>(
         prContext = await loadPullRequestContext(job.data.pullRequestUrl);
 
         console.log(`🔢 PR #${prContext.metadata.number}`);
-
         console.log(`📝 Title: ${prContext.metadata.title}`);
-
         console.log(`👤 Author: ${prContext.metadata.author}`);
 
         console.log(
@@ -142,18 +178,14 @@ const worker = new Worker<AnalysisJobData>(
         );
 
         console.log(`📄 Changed Files: ${prContext.files.length}`);
-
         console.log(`➕ Additions: ${prContext.metadata.additions}`);
-
         console.log(`➖ Deletions: ${prContext.metadata.deletions}`);
-
         console.log(`🧩 Commits: ${prContext.metadata.commits}`);
       }
 
       // --------------------------------------------------
       // AI Analysis
       // --------------------------------------------------
-
       console.log();
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log("🤖 AI Analysis");
@@ -168,9 +200,17 @@ const worker = new Worker<AnalysisJobData>(
 
           await saveAnalysisResult(job.data.analysisId, summary);
 
+          await setCache(
+            job.data.owner,
+            job.data.repository,
+            job.data.type,
+            summary,
+          );
+
           console.log();
           console.log("✅ Summary Generated");
           console.log("💾 Summary saved to database");
+          console.log("⚡ Summary cached in Redis");
 
           break;
         }
@@ -184,9 +224,14 @@ const worker = new Worker<AnalysisJobData>(
             markdown: readme.markdown,
           });
 
+          await setCache(job.data.owner, job.data.repository, job.data.type, {
+            markdown: readme.markdown,
+          });
+
           console.log();
           console.log("✅ README Generated");
           console.log("💾 README saved to database");
+          console.log("⚡ README cached in Redis");
 
           break;
         }
@@ -202,9 +247,17 @@ const worker = new Worker<AnalysisJobData>(
 
           await saveAnalysisResult(job.data.analysisId, review);
 
+          await setCache(
+            job.data.owner,
+            job.data.repository,
+            job.data.type,
+            review,
+          );
+
           console.log();
           console.log("✅ Review Generated");
           console.log("💾 Review saved to database");
+          console.log("⚡ Review cached in Redis");
 
           break;
         }
@@ -212,6 +265,7 @@ const worker = new Worker<AnalysisJobData>(
         default:
           throw new Error(`Unsupported analysis type: ${job.data.type}`);
       }
+
       // --------------------------------------------------
       // Mark Analysis Completed
       // --------------------------------------------------
@@ -225,12 +279,14 @@ const worker = new Worker<AnalysisJobData>(
       // Cleanup
       // --------------------------------------------------
 
-      console.log();
-      console.log("🗑️ Cleaning temporary repository...");
+      if (repositoryPath) {
+        console.log();
+        console.log("🗑️ Cleaning temporary repository...");
 
-      await cleanupRepository(repositoryPath);
+        await cleanupRepository(repositoryPath);
 
-      console.log("✅ Temporary repository deleted");
+        console.log("✅ Temporary repository deleted");
+      }
 
       console.log();
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -238,10 +294,6 @@ const worker = new Worker<AnalysisJobData>(
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log();
     } catch (error) {
-      // --------------------------------------------------
-      // Mark Analysis Failed
-      // --------------------------------------------------
-
       await updateAnalysisStatus(
         job.data.analysisId,
         AnalysisStatus.FAILED,

@@ -5,4 +5,4 @@ export * from "./retry";
 export * from "./service";
 export * from "./types";
 
-export * from "./prompts";
+export * from "./prompts/index";

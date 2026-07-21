@@ -1,2 +1,2 @@
-export * from "./chunk";
-export * from "./gemini";
+export * from "./chunk/index";
+export * from "./gemini/index";

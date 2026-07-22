@@ -1,7 +1,7 @@
 import type { RepositoryContext } from "@repo/github";
 
-import { estimateFileTokens } from "./estimator";
-import { MAX_CHUNK_TOKENS } from "./constants";
+import { estimateFileTokens } from "./estimator.js";
+import { MAX_CHUNK_TOKENS } from "./constants.js";
 import type {
   ChunkFile,
   ChunkMetadata,

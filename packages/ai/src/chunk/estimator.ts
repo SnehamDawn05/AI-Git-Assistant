@@ -1,6 +1,6 @@
 import { RepositoryFile } from "@repo/github";
 
-import { CHARACTERS_PER_TOKEN } from "./constants";
+import { CHARACTERS_PER_TOKEN } from "./constants.js";
 
 /**
  * Estimate the number of tokens for a string.

@@ -16,7 +16,7 @@ import {
 } from "./prompts/index.js";
 import { withRetry } from "./retry.js";
 import type { ReadmeResult, ReviewResult, SummaryResult } from "./types";
-import { MAX_CONTEXT_TOKENS } from "./config";
+import { MAX_CONTEXT_TOKENS } from "./config.js";
 
 /**
  * Generates a repository summary using a single Gemini request.

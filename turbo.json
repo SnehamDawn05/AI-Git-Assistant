@@ -7,7 +7,16 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "dist/**"]
+      "outputs": [".next/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "REDIS_URL",
+        "GEMINI_API_KEY",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET"
+      ]
     },
     "lint": {},
     "typecheck": {}

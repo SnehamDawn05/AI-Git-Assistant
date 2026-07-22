@@ -4,11 +4,20 @@
   "version": "1.0.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./client": "./src/client.ts",
-    "./analysis": "./src/analysis.ts"
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    },
+    "./analysis": {
+      "import": "./dist/analysis.js",
+      "types": "./dist/analysis.d.ts"
+    }
   },
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "packageManager": "pnpm@10.34.4",
   "scripts": {
     "generate": "prisma generate",

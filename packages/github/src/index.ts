@@ -1,7 +1,7 @@
-export * from "./cleanup";
-export * from "./clone";
-export * from "./files";
-export * from "./temp";
+export * from "./cleanup.js";
+export * from "./clone.js";
+export * from "./files.js";
+export * from "./temp.js";
 
-export * from "./context/index";
-export * from "./pr/index";
+export * from "./context/index.js";
+export * from "./pr/index.js";

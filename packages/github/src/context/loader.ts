@@ -1,11 +1,11 @@
 import path from "path";
 
-import { getRepositoryFiles } from "../files";
+import { getRepositoryFiles } from "../files.js";
 
-import { CONCURRENT_READS, MAX_FILES, MAX_REPOSITORY_SIZE } from "./config";
-import { sortFilesByPriority } from "./priorities";
-import { readRepositoryFiles } from "./reader";
-import { RepositoryContext, RepositoryFile } from "./types";
+import { CONCURRENT_READS, MAX_FILES, MAX_REPOSITORY_SIZE } from "./config.js";
+import { sortFilesByPriority } from "./priorities.js";
+import { readRepositoryFiles } from "./reader.js";
+import { RepositoryContext, RepositoryFile } from "./types.js";
 
 /**
  * Loads an entire repository into a RepositoryContext.

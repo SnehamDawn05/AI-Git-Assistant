@@ -1,6 +1,6 @@
 import { AnalysisStatus, AnalysisType, Prisma } from "@prisma/client";
 
-import { prisma } from "./client";
+import { prisma } from "./client.js";
 
 /**
  * Any AI result that can be stored in the Result.content JSON column.

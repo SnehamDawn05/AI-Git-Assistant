@@ -2,7 +2,7 @@ import type {
   GitHubPullRequestFileResponse,
   GitHubPullRequestResponse,
 } from "./github-types";
-import type { ParsedPullRequestUrl } from "./parser";
+import type { ParsedPullRequestUrl } from "./parser.js";
 
 const GITHUB_API = "https://api.github.com";
 

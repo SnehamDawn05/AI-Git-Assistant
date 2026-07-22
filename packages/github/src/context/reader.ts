@@ -1,9 +1,9 @@
 import fs from "fs-extra";
 import path from "path";
 
-import { IGNORED_EXTENSIONS, MAX_FILE_SIZE } from "./config";
-import { detectLanguage } from "./language";
-import { ProgrammingLanguage, RepositoryFile } from "./types";
+import { IGNORED_EXTENSIONS, MAX_FILE_SIZE } from "./config.js";
+import { detectLanguage } from "./language.js";
+import { ProgrammingLanguage, RepositoryFile } from "./types.js";
 
 /**
  * Returns true if the file extension should be ignored.

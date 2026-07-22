@@ -1,4 +1,4 @@
-import { JobType } from "./job-types";
+import { JobType } from "./job-types.js";
 
 export interface AnalysisJobData {
   analysisId: string;

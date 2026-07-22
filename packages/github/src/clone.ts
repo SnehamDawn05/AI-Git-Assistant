@@ -1,6 +1,6 @@
 import simpleGit from "simple-git";
 
-import { createTempDirectory } from "./temp";
+import { createTempDirectory } from "./temp.js";
 
 /**
  * Clone a GitHub repository into a temporary directory.

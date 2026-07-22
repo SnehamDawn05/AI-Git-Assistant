@@ -4,10 +4,20 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/server.ts",
-    "./client": "./src/client.ts",
-    "./server": "./src/server.ts"
+    ".": {
+      "import": "./dist/server.js",
+      "types": "./dist/server.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    },
+    "./server": {
+      "import": "./dist/server.js",
+      "types": "./dist/server.d.ts"
+    }
   },
+  "types": "./dist/server.d.ts",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit"

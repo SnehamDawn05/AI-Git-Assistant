@@ -1,6 +1,6 @@
 import path from "path";
 
-import { HIGH_PRIORITY_FILES, SOURCE_DIRECTORIES } from "./config";
+import { HIGH_PRIORITY_FILES, SOURCE_DIRECTORIES } from "./config.js";
 
 /**
  * Returns a priority score for a repository file.

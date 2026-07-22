@@ -1,6 +1,6 @@
 import path from "path";
 
-import { ProgrammingLanguage } from "./types";
+import { ProgrammingLanguage } from "./types.js";
 
 const LANGUAGE_MAP: Record<string, ProgrammingLanguage> = {
   ".ts": ProgrammingLanguage.TYPESCRIPT,

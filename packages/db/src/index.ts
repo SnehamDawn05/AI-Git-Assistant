@@ -1,5 +1,5 @@
-export { prisma } from "./client";
+export { prisma } from "./client.js";
 
-export * from "./analysis";
+export * from "./analysis.js";
 
 export { AnalysisStatus, AnalysisType, Prisma } from "@prisma/client";

@@ -1,7 +1,7 @@
-import { getPullRequest, getPullRequestFiles } from "./client";
-import type { GitHubPullRequestFileResponse } from "./github-types";
-import type { ParsedPullRequestUrl } from "./parser";
-import type { PRContext, PRFile, PRMetadata } from "./types";
+import { getPullRequest, getPullRequestFiles } from "./client.js";
+import type { GitHubPullRequestFileResponse } from "./github-types.js";
+import type { ParsedPullRequestUrl } from "./parser.js";
+import type { PRContext, PRFile, PRMetadata } from "./types.js";
 
 /**
  * Fetches a pull request from GitHub and converts it into a PRContext.

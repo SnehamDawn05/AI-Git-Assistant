@@ -1,20 +1,20 @@
 import type { PRContext, RepositoryContext } from "@repo/github";
 
-import { chunkRepository } from "../chunk";
+import { chunkRepository } from "../chunk/index.js";
 
-import { generateText } from "./client";
+import { generateText } from "./client.js";
 import {
   parseReadmeResult,
   parseReviewResult,
   parseSummaryResult,
-} from "./parser";
+} from "./parser.js";
 import {
   buildReadmePrompt,
   buildReviewPrompt,
   buildSummaryPrompt,
   buildSystemPrompt,
-} from "./prompts";
-import { withRetry } from "./retry";
+} from "./prompts/index.js";
+import { withRetry } from "./retry.js";
 import type { ReadmeResult, ReviewResult, SummaryResult } from "./types";
 import { MAX_CONTEXT_TOKENS } from "./config";
 

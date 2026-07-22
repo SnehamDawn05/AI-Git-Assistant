@@ -1,6 +1,6 @@
 import type { RepositoryContext } from "@repo/github";
 
-import { formatChunkResult, type ChunkResult } from "../../chunk";
+import { formatChunkResult, type ChunkResult } from "../../chunk/index.js";
 
 export function buildReadmePrompt(
   repository: RepositoryContext,

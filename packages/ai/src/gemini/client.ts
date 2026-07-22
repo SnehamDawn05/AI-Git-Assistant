@@ -4,7 +4,7 @@ import {
   GEMINI_GENERATION_CONFIG,
   GEMINI_MODEL,
   getGeminiApiKey,
-} from "./config";
+} from "./config.js";
 
 /**
  * Singleton Gemini client.

@@ -1,6 +1,9 @@
 import Redis from "ioredis";
 
-const redis = new Redis(process.env.REDIS_URL!);
+const redis = new Redis(process.env.REDIS_URL!, {
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
+});
 
 const CACHE_TTL = 60 * 60 * 24 * 7; // 7 days
 

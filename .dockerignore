@@ -1,0 +1,25 @@
+# Dependencies (will be installed inside Docker)
+**/node_modules
+
+# Build artifacts (will be rebuilt inside Docker)
+**/dist
+**/.turbo
+**/tsconfig.tsbuildinfo
+
+# Git
+.git
+.gitignore
+
+# Local env files
+**/.env
+**/.env.*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Logs
+**/tmp
+**/*.log

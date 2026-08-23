@@ -1,0 +1,13 @@
+# fly.toml app configuration file generated for AI Git Assistant Worker
+
+app = "ai-git-assistant-worker"
+primary_region = "bom" # Mumbai region (or sin / iad)
+
+[build]
+  image = "docker.io/dawn005/ai-git-assistant-worker:latest"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

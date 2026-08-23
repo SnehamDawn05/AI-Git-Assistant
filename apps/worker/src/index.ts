@@ -336,3 +336,23 @@ worker.on("failed", (job, error) => {
 });
 
 console.log("🚀 Worker started");
+
+// --------------------------------------------------
+// Health Check Server (for Render / Koyeb / Cloud free web services)
+// --------------------------------------------------
+import express from "express";
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+app.get("/", (_req, res) => {
+  res.status(200).json({ status: "ok", message: "Worker is running" });
+});
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "healthy" });
+});
+
+app.listen(PORT, () => {
+  console.log(`🌐 Health check server listening on port ${PORT}`);
+});

@@ -20,4 +20,4 @@ RUN pnpm turbo run build --filter=worker
 
 WORKDIR /app/apps/worker
 
-CMD ["pnpm", "start"]
+CMD ["node", "dist/index.js"]

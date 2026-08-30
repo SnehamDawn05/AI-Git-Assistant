@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 
-import { Loader2 } from "lucide-react";
+import { ArrowRight, Link2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { JobType } from "@repo/queue/client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import { AnalysisTypeSelector } from "./analysis-type-selector";
@@ -17,11 +16,8 @@ export function AnalysisForm() {
   const router = useRouter();
 
   const [type, setType] = useState<JobType>(JobType.REVIEW);
-
   const [repositoryUrl, setRepositoryUrl] = useState("");
-
   const [pullRequestUrl, setPullRequestUrl] = useState("");
-
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -42,18 +38,12 @@ export function AnalysisForm() {
 
       const response = await fetch("/api/analyze", {
         method: "POST",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           repositoryUrl:
             type === JobType.REVIEW ? undefined : repositoryUrl.trim(),
-
           pullRequestUrl:
             type === JobType.REVIEW ? pullRequestUrl.trim() : undefined,
-
           type,
         }),
       });
@@ -65,11 +55,8 @@ export function AnalysisForm() {
       }
 
       toast.success("Analysis queued successfully!");
-
       setRepositoryUrl("");
       setPullRequestUrl("");
-
-      // Redirect directly to the analysis page
       router.push(`/analysis/${data.analysisId}`);
     } catch (error) {
       toast.error(
@@ -80,39 +67,55 @@ export function AnalysisForm() {
     }
   }
 
+  const placeholder =
+    type === JobType.REVIEW
+      ? "https://github.com/owner/repository/pull/123"
+      : "https://github.com/owner/repository";
+
+  const currentValue = type === JobType.REVIEW ? pullRequestUrl : repositoryUrl;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (type === JobType.REVIEW) {
+      setPullRequestUrl(e.target.value);
+    } else {
+      setRepositoryUrl(e.target.value);
+    }
+  };
+
   return (
-    <form className="space-y-6" onSubmit={handleSubmit}>
+    <form className="space-y-5" onSubmit={handleSubmit}>
       <AnalysisTypeSelector
         value={type}
         onValueChange={(value) => setType(value as JobType)}
       />
 
-      {type !== JobType.REVIEW && (
+      <div className="relative">
+        <Link2 className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="https://github.com/owner/repository"
-          value={repositoryUrl}
-          onChange={(e) => setRepositoryUrl(e.target.value)}
+          placeholder={placeholder}
+          value={currentValue}
+          onChange={handleChange}
+          className="border-white/[0.1] bg-white/[0.04] pl-10 placeholder:text-muted-foreground/60 focus:border-indigo-500/50 focus:bg-white/[0.06]"
         />
-      )}
+      </div>
 
-      {type === JobType.REVIEW && (
-        <Input
-          placeholder="https://github.com/owner/repository/pull/123"
-          value={pullRequestUrl}
-          onChange={(e) => setPullRequestUrl(e.target.value)}
-        />
-      )}
-
-      <Button className="w-full" type="submit" disabled={isLoading}>
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="btn-glow group flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold text-white disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
+      >
         {isLoading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin" />
             Queuing Analysis...
           </>
         ) : (
-          "Analyze"
+          <>
+            Run Analysis
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </>
         )}
-      </Button>
+      </button>
     </form>
   );
 }

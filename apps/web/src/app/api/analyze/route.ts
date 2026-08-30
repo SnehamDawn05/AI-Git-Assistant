@@ -164,6 +164,16 @@ export async function POST(req: NextRequest) {
 
     await analysisQueue.add(type, job);
 
+    // Wake up worker if running on a sleeping host (e.g., Render Free Web Service)
+    const workerUrl = process.env.WORKER_URL;
+    if (workerUrl) {
+      fetch(`${workerUrl.replace(/\/$/, "")}/health`, {
+        signal: AbortSignal.timeout(5000),
+      }).catch(() => {
+        // Silently ignore ping timeout/errors
+      });
+    }
+
     return NextResponse.json({
       success: true,
 

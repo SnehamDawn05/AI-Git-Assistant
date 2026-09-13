@@ -69,3 +69,18 @@ export async function getPullRequestFiles(
     `${GITHUB_API}/repos/${pr.owner}/${pr.repository}/pulls/${pr.pullNumber}/files`,
   );
 }
+
+/**
+ * Fetches the head commit SHA for a pull request.
+ */
+export async function getPullRequestHeadSha(
+  pr: ParsedPullRequestUrl,
+): Promise<string | null> {
+  try {
+    const data = await getPullRequest(pr);
+    return data.head?.sha ?? null;
+  } catch (error) {
+    console.warn(`⚠️ Failed to fetch PR #${pr.pullNumber} head SHA:`, error);
+    return null;
+  }
+}

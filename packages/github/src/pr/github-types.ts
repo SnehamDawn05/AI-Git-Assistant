@@ -26,6 +26,7 @@ export interface GitHubPullRequestResponse {
 
   head: {
     ref: string;
+    sha: string;
   };
 }
 

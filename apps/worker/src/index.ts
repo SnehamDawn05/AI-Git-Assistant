@@ -13,6 +13,9 @@ import { Worker } from "bullmq";
 import {
   cleanupRepository,
   cloneRepository,
+  getLocalCommitSha,
+  getPullRequestHeadSha,
+  getRemoteHeadCommitSha,
   loadPullRequestContext,
   loadRepositoryContext,
   parsePullRequestUrl,
@@ -23,6 +26,7 @@ import {
   ANALYSIS_QUEUE_NAME,
   JobType,
   type AnalysisJobData,
+  type CacheKeyOptions,
   getCache,
   setCache,
 } from "@repo/queue/server";
@@ -49,6 +53,7 @@ const worker = new Worker<AnalysisJobData>(
 
     let repositoryPath: string | undefined;
     let prContext: PRContext | undefined;
+    const cacheOptions: CacheKeyOptions = {};
 
     try {
       // --------------------------------------------------
@@ -61,6 +66,40 @@ const worker = new Worker<AnalysisJobData>(
       );
 
       // --------------------------------------------------
+      // Determine Repository URL & Cache Options
+      // --------------------------------------------------
+
+      let repositoryUrl = job.data.repositoryUrl;
+
+      if (job.data.type === JobType.REVIEW && job.data.pullRequestUrl) {
+        try {
+          const parsed = parsePullRequestUrl(job.data.pullRequestUrl);
+          repositoryUrl = `https://github.com/${parsed.owner}/${parsed.repository}`;
+          console.log(`📂 Derived Repository: ${repositoryUrl}`);
+
+          cacheOptions.pullNumber = parsed.pullNumber;
+
+          const headSha = await getPullRequestHeadSha(parsed);
+          if (headSha) {
+            cacheOptions.commitSha = headSha;
+            console.log(`📌 PR #${parsed.pullNumber} Head SHA: ${headSha}`);
+          }
+        } catch (err) {
+          console.warn("⚠️ Failed to resolve PR metadata for cache:", err);
+        }
+      } else {
+        try {
+          const commitSha = await getRemoteHeadCommitSha(repositoryUrl);
+          if (commitSha) {
+            cacheOptions.commitSha = commitSha;
+            console.log(`📌 Remote HEAD SHA: ${commitSha}`);
+          }
+        } catch (err) {
+          console.warn("⚠️ Failed to resolve remote HEAD SHA for cache:", err);
+        }
+      }
+
+      // --------------------------------------------------
       // Check Redis Cache
       // --------------------------------------------------
 
@@ -71,6 +110,7 @@ const worker = new Worker<AnalysisJobData>(
         job.data.owner,
         job.data.repository,
         job.data.type,
+        cacheOptions,
       );
 
       if (cachedResult) {
@@ -97,20 +137,6 @@ const worker = new Worker<AnalysisJobData>(
       console.log("❌ Cache miss");
 
       // --------------------------------------------------
-      // Determine Repository URL
-      // --------------------------------------------------
-
-      let repositoryUrl = job.data.repositoryUrl;
-
-      if (job.data.type === JobType.REVIEW && job.data.pullRequestUrl) {
-        const parsed = parsePullRequestUrl(job.data.pullRequestUrl);
-
-        repositoryUrl = `https://github.com/${parsed.owner}/${parsed.repository}`;
-
-        console.log(`📂 Derived Repository: ${repositoryUrl}`);
-      }
-
-      // --------------------------------------------------
       // Clone Repository
       // --------------------------------------------------
 
@@ -118,6 +144,14 @@ const worker = new Worker<AnalysisJobData>(
       console.log("📥 Cloning repository...");
 
       repositoryPath = await cloneRepository(repositoryUrl);
+
+      // Fallback: Obtain commit SHA locally if remote lookup didn't succeed
+      if (!cacheOptions.commitSha && job.data.type !== JobType.REVIEW) {
+        const localSha = await getLocalCommitSha(repositoryPath);
+        if (localSha) {
+          cacheOptions.commitSha = localSha;
+        }
+      }
 
       // --------------------------------------------------
       // Repository Context
@@ -205,6 +239,7 @@ const worker = new Worker<AnalysisJobData>(
             job.data.repository,
             job.data.type,
             summary,
+            cacheOptions,
           );
 
           console.log();
@@ -224,9 +259,15 @@ const worker = new Worker<AnalysisJobData>(
             markdown: readme.markdown,
           });
 
-          await setCache(job.data.owner, job.data.repository, job.data.type, {
-            markdown: readme.markdown,
-          });
+          await setCache(
+            job.data.owner,
+            job.data.repository,
+            job.data.type,
+            {
+              markdown: readme.markdown,
+            },
+            cacheOptions,
+          );
 
           console.log();
           console.log("✅ README Generated");
@@ -241,6 +282,10 @@ const worker = new Worker<AnalysisJobData>(
             throw new Error("Pull Request context not found.");
           }
 
+          if (!cacheOptions.commitSha && prContext.metadata.headSha) {
+            cacheOptions.commitSha = prContext.metadata.headSha;
+          }
+
           console.log("🔍 Reviewing Pull Request...");
 
           const review = await reviewPullRequest(repositoryContext, prContext);
@@ -252,6 +297,7 @@ const worker = new Worker<AnalysisJobData>(
             job.data.repository,
             job.data.type,
             review,
+            cacheOptions,
           );
 
           console.log();

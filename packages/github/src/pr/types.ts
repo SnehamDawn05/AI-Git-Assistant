@@ -70,6 +70,11 @@ export interface PRMetadata {
   headBranch: string;
 
   /**
+   * Head commit SHA.
+   */
+  headSha?: string;
+
+  /**
    * Number of commits.
    */
   commits: number;

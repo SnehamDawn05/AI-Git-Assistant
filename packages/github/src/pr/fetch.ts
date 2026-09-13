@@ -27,6 +27,8 @@ export async function fetchPullRequestContext(
 
     headBranch: pullRequest.head.ref,
 
+    headSha: pullRequest.head?.sha,
+
     commits: pullRequest.commits,
 
     additions: pullRequest.additions,

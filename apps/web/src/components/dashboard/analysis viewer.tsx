@@ -280,7 +280,10 @@ export function AnalysisViewer({ id }: { id: string }) {
               )}
               {analysis.type === "README" && (
                 <ReadmeView
-                  markdown={(analysis.result?.content as ReadmeData).markdown}
+                  markdown={
+                    (analysis.result?.content as ReadmeData | undefined)
+                      ?.markdown ?? ""
+                  }
                 />
               )}
               {analysis.type === "REVIEW" && (

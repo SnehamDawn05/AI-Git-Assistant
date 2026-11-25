@@ -19,17 +19,17 @@ ${formatChunkResult(chunkResult)}
 
 Generate a comprehensive repository summary.
 
-Return ONLY valid JSON.
+Return ONLY valid JSON where every array contains plain strings (and each "modules" entry uses "moduleName: description").
 
 Example:
 
 {
   "overview": "...",
   "architecture": "...",
-  "techStack": [],
-  "modules": [],
-  "strengths": [],
-  "improvements": []
+  "techStack": ["TypeScript", "Next.js"],
+  "modules": ["apps/web: Next.js frontend application"],
+  "strengths": ["..."],
+  "improvements": ["..."]
 }
 `;
 }

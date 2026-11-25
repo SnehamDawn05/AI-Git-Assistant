@@ -8,11 +8,18 @@ import type { ReadmeResult, ReviewResult, SummaryResult } from "./types";
  * Remove the code fences before parsing.
  */
 function extractJson(text: string): string {
-  return text
+  const cleaned = text
     .replace(/^```json\s*/i, "")
     .replace(/^```\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();
+
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    return cleaned.slice(start, end + 1);
+  }
+  return cleaned;
 }
 
 export function parseSummaryResult(response: string): SummaryResult {

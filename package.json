@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build",
+    "dev": "dotenv -- turbo run dev",
+    "build": "dotenv -- turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "prepare": "husky"
@@ -32,6 +32,7 @@
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "dotenv-cli": "^11.1.0",
     "eslint": "^9.39.4",
     "globals": "^17.7.0",
     "husky": "^9.1.7",

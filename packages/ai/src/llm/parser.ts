@@ -1,7 +1,7 @@
 import type { ReadmeResult, ReviewResult, SummaryResult } from "./types";
 
 /**
- * Gemini sometimes wraps JSON inside
+ * LLMs sometimes wrap JSON inside
  * ```json
  * ...
  * ```

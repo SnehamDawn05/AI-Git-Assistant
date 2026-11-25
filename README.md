@@ -2,7 +2,7 @@
 
 ## Overview
 
-AI Git Assistant is a powerful, AI-driven platform designed to streamline repository management and code quality assurance. By leveraging advanced LLMs (Gemini), it provides automated insights, documentation generation, and intelligent pull request reviews, helping developers maintain high standards and improve productivity.
+AI Git Assistant is a powerful, AI-driven platform designed to streamline repository management and code quality assurance. By leveraging advanced LLMs (via OpenRouter), it provides automated insights, documentation generation, and intelligent pull request reviews, helping developers maintain high standards and improve productivity.
 
 ## Features
 
@@ -18,7 +18,7 @@ AI Git Assistant is a powerful, AI-driven platform designed to streamline reposi
 - **Language:** TypeScript
 - **Database:** PostgreSQL with Prisma ORM
 - **Authentication:** Better Auth
-- **AI Engine:** Google Gemini (via `@google/genai`)
+- **AI Engine:** OpenRouter (free tier via `openrouter/free`)
 - **Task Queue:** BullMQ & Redis
 - **Styling:** Tailwind CSS & Shadcn UI
 - **Monorepo Management:** Turborepo & pnpm
@@ -27,7 +27,7 @@ AI Git Assistant is a powerful, AI-driven platform designed to streamline reposi
 
 - `apps/web`: Next.js frontend application.
 - `apps/worker`: Background worker service for processing AI analysis jobs.
-- `packages/ai`: Core AI logic, including chunking, prompting, and Gemini integration.
+- `packages/ai`: Core AI logic, including chunking, prompting, and OpenRouter LLM integration.
 - `packages/db`: Shared Prisma schema and database client.
 - `packages/github`: Utilities for cloning, scanning, and fetching GitHub PR data.
 - `packages/queue`: Shared queue definitions and Redis cache logic.
@@ -48,12 +48,12 @@ AI Git Assistant is a powerful, AI-driven platform designed to streamline reposi
    ```
 
 3. **Environment Variables:**
-   Create a `.env` file in the root directory (and relevant sub-directories) with the following:
+   Create a `.env` file in the root directory (see `.env.example`) with the following:
 
    ```env
    DATABASE_URL=...
    REDIS_URL=...
-   GEMINI_API_KEY=...
+   OPENROUTER_API_KEY=...
    BETTER_AUTH_SECRET=...
    BETTER_AUTH_URL="http://localhost:3000"
    ```

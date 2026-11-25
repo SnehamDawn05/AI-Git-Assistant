@@ -18,7 +18,7 @@ export async function withRetry<T>(
       }
 
       console.warn(
-        `Gemini request failed (attempt ${attempt}/${retries}). Retrying...`,
+        `LLM request failed (attempt ${attempt}/${retries}). Retrying...`,
       );
 
       await new Promise((resolve) => setTimeout(resolve, attempt * 1000));

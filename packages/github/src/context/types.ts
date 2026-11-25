@@ -47,7 +47,7 @@ export interface RepositoryFile {
 
 /**
  * Represents the complete repository context.
- * This object will later be chunked and sent to Gemini.
+ * This object will later be chunked and sent to the LLM.
  */
 export interface RepositoryContext {
   /**

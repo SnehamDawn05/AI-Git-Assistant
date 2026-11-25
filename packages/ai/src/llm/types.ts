@@ -1,13 +1,13 @@
 /**
  * Supported AI features.
  */
-export enum GeminiTask {
+export enum AITask {
   SUMMARY = "SUMMARY",
   README = "README",
   REVIEW = "REVIEW",
 }
 
-export interface GeminiOptions {
+export interface AIOptions {
   temperature?: number;
   maxOutputTokens?: number;
 }

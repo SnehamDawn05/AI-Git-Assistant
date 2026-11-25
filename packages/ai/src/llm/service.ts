@@ -19,7 +19,7 @@ import type { ReadmeResult, ReviewResult, SummaryResult } from "./types";
 import { MAX_CONTEXT_TOKENS } from "./config.js";
 
 /**
- * Generates a repository summary using a single Gemini request.
+ * Generates a repository summary using a single LLM request.
  */
 export async function generateSummary(
   repository: RepositoryContext,
@@ -44,17 +44,17 @@ ${buildSystemPrompt()}
 ${buildSummaryPrompt(repository, chunkResult)}
 `;
 
-  console.log("🤖 Sending request to Gemini...");
+  console.log("🤖 Sending request to LLM...");
 
   const response = await withRetry(() => generateText(prompt));
 
-  console.log("✅ Gemini response received");
+  console.log("✅ LLM response received");
 
   return parseSummaryResult(response);
 }
 
 /**
- * Generates a README using a single Gemini request.
+ * Generates a README using a single LLM request.
  */
 export async function generateReadme(
   repository: RepositoryContext,
@@ -79,17 +79,17 @@ ${buildSystemPrompt()}
 ${buildReadmePrompt(repository, chunkResult)}
 `;
 
-  console.log("🤖 Sending request to Gemini...");
+  console.log("🤖 Sending request to LLM...");
 
   const response = await withRetry(() => generateText(prompt));
 
-  console.log("✅ Gemini response received");
+  console.log("✅ LLM response received");
 
   return parseReadmeResult(response);
 }
 
 /**
- * Reviews a pull request using a single Gemini request.
+ * Reviews a pull request using a single LLM request.
  */
 export async function reviewPullRequest(
   repository: RepositoryContext,
@@ -115,11 +115,11 @@ ${buildSystemPrompt()}
 ${buildReviewPrompt(repository, pr, chunkResult)}
 `;
 
-  console.log("🤖 Sending request to Gemini...");
+  console.log("🤖 Sending request to LLM...");
 
   const response = await withRetry(() => generateText(prompt));
 
-  console.log("✅ Gemini response received");
+  console.log("✅ LLM response received");
 
   return parseReviewResult(response);
 }

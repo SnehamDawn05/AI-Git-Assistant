@@ -25,7 +25,7 @@ export interface PRFile {
   /**
    * Unified diff (patch) provided by GitHub.
    *
-   * This is what Gemini will review.
+   * This is what the LLM will review.
    */
   patch?: string;
 

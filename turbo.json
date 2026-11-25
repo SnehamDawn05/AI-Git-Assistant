@@ -3,7 +3,17 @@
   "tasks": {
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "passThroughEnv": [
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "REDIS_URL",
+        "OPENROUTER_API_KEY",
+        "WORKER_URL",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET"
+      ]
     },
     "build": {
       "dependsOn": ["^build"],
@@ -13,7 +23,7 @@
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
         "REDIS_URL",
-        "GEMINI_API_KEY",
+        "OPENROUTER_API_KEY",
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET"
       ]
